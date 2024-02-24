@@ -1,0 +1,23 @@
+//@version=4
+study("Moving Average Crossover Strategy", shorttitle="MA Crossover" )
+
+// Define parameters
+fastLength = input(50, title="Fast MA Length")
+slowLength = input(200, title="Slow MA Length")
+
+// Calculate moving averages
+fastMA = sma(close, fastLength)
+slowMA = sma(close, slowLength)
+
+// Define crossover conditions
+buyCondition = crossover(fastMA, slowMA)
+sellCondition = crossunder(fastMA, slowMA)
+
+// Plot moving averages
+plot(fastMA, color=color.blue, title="Fast MA")
+plot(slowMA, color=color.red, title="Slow MA")
+
+// Plot shapes for crossover and crossunder
+plotshape(series=buyCondition, title="Buy Signal", color=color.green, style=shape.triangleup, location=location.belowbar)
+plotshape(series=sellCondition, title="Sell Signal", color=color.red, style=shape.triangledown, location=location.abovebar)
+

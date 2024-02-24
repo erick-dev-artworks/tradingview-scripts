@@ -1,0 +1,18 @@
+//@version=3
+// Simple indicator which shows volume spikes. 
+// By default spike is defined as such when volume is 2 times higher than average volume for last 10 volume bars (this can be changed in settings)
+// Also instead of using average volume (SMA is used in this case) you can use WMA or EMA by changing settings
+
+study("Volume Spikes (Graph)", overlay=false, linktoseries=false, precision=0)
+
+n_times = input(title="Must be N types bigger", minval=1, defval=2.0)
+bars_back = input(title="Than average volume in the last X bars", minval=1, defval=10)
+ma_type = input(title="Which moving average to use?", defval="SMA", options=["SMA", "WMA", "EMA"])
+
+ma_func(x, length) =>
+    ma_type == "WMA" ? wma(x, length) : (ma_type == "SMA" ? sma(x, length) : ema(x, length))
+
+
+plot(volume, color=close >= open ? green : red, style=columns, transp=60, histbase=0)
+plotshape(volume > ma_func(volume[1], bars_back) * n_times ? volume : na, title="Spikes", location=location.absolute, style=shape.triangledown, text="Spike")
+

@@ -1,0 +1,64 @@
+//@version=4
+study("Trend Mode - (SHORT/LONG) Lines", overlay = true)
+
+//inputs
+Periods = input(title="ATR Period", type=input.integer, defval=10)
+Source = input(hl2, title="Source")
+Multiplier = input(title="ATR Multiplier", type=input.float, step=0.1, defval=3.0)
+
+//Compute ATR Levels
+atr=  atr(Periods) 
+
+//Creating Upper Channel
+up=Source-(Multiplier*atr)
+up1 = nz(up[1],up)
+up := close[1] > up1 ? max(up,up1) : up
+
+//Creating Down Channel
+dn=Source+(Multiplier*atr)
+dn1 = nz(dn[1], dn)
+dn := close[1] < dn1 ? min(dn, dn1) : dn
+
+
+//Compute the Trend Stream +1/-1
+trend = 1
+trend := nz(trend[1], trend)
+trend := trend == -1 and close > dn1 ? 1 : trend == 1 and close < up1 ? -1 : trend
+
+//Create Stoploss for Longs
+upPlot = plot(trend == 1 ? up : na, title="Up Trend", style=plot.style_linebr, linewidth=2, color=color.green)
+
+//Buy Signal
+Buy = trend == 1 and trend[1] == -1
+
+plotshape(Buy ? up : na, title="Go Long", location=location.absolute, style=shape.circle, size=size.tiny, color=color.green, transp=0)
+plotshape(Buy ? up : na, title="Buy", text="Buy Mode", location=location.absolute, style=shape.labelup, size=size.tiny, color=color.green, textcolor=color.white, transp=0)
+
+dnPlot = plot(trend == 1 ? na : dn, title="Down Trend", style=plot.style_linebr, linewidth=2, color=color.red)
+
+//Sell Signal
+Sell = trend == -1 and trend[1] == 1
+
+plotshape(Sell ? dn : na, title="Go Short", location=location.absolute, style=shape.circle, size=size.tiny, color=color.red, transp=0)
+plotshape(Sell ? dn : na, title="Sell", text="Sell Mode", location=location.absolute, style=shape.labeldown, size=size.tiny, color=color.red, textcolor=color.white, transp=0)
+
+iPlot = plot(ohlc4, title="", style=plot.style_circles, linewidth=0)
+
+longFillColor =  trend == 1 ? color.green : color.white
+shortFillColor = trend == -1 ? color.red : color.white
+
+fill(iPlot, upPlot, title="UpTrend Highligter", color=longFillColor)
+fill(iPlot, dnPlot, title="DownTrend Highligter", color=shortFillColor)
+
+
+
+//Alerts
+alertcondition(Buy, title="SuperTrend Buy", message="SuperTrend Buy!")
+alertcondition(Sell, title="SuperTrend Sell", message="SuperTrend Sell!")
+
+
+buycontiue = barssince(Sell) > barssince(Buy)
+sellcontinue = barssince(Buy) > barssince(Sell)
+
+color = buycontiue[1] ? color.green : sellcontinue ? color.red : na
+barcolor(color)
